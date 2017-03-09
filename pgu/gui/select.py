@@ -39,6 +39,7 @@ class Select(Table):
         Table.add(self,self.top_selected) #,hexpand=1,vexpand=1)#,0,0)
         
         self.top_arrow = Button(Image(self.style.arrow), cls=self.cls+".arrow")
+        self.top_arrow.focusable = False
         Table.add(self,self.top_arrow) #,hexpand=1,vexpand=1) #,1,0)
         
         self.options = Table(cls=self.cls+".options")
