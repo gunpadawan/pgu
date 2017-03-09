@@ -127,7 +127,7 @@ class SlideBox(container.Container):
                 else:
                     e_params['button'] = e.button
                 e = pygame.event.Event(e.type, e_params)
-        container.Container.event(self, e)
+        return container.Container.event(self, e)
 
 #class SlideBox(Area):
 #    def __init__(self,*args,**params):

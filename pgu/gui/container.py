@@ -100,18 +100,21 @@ class Container(widget.Widget):
 
         # Now handle the open window (if any)        
         if self.mywindow:
-            # Render the window
-            self.mywindow.paint(self.top_surface(s,self.mywindow))
-            updates.append(pygame.rect.Rect(self.mywindow.rect))
-            # Update the surface
-            us = self.mywindow.update(self.top_surface(s,self.mywindow))
-            if us:
-                for u in us:
-                    updates.append(pygame.rect.Rect(
-                        u.x + self.mywindow.rect.x,
-                        u.y + self.mywindow.rect.y,
-                        u.w, u.h))
-        
+            if self.mywindow in self.topaint:
+                # Render the window
+                self.mywindow.paint(self.top_surface(s,self.mywindow))
+                updates.append(pygame.rect.Rect(self.mywindow.rect))
+
+            if self.mywindow in self.toupdate:
+                # Update the surface
+                us = self.mywindow.update(self.top_surface(s,self.mywindow))
+                if us:
+                    for u in us:
+                        updates.append(pygame.rect.Rect(
+                            u.x + self.mywindow.rect.x,
+                            u.y + self.mywindow.rect.y,
+                            u.w, u.h))
+
         self.topaint = {}
         self.toupdate = {}
         
@@ -166,8 +169,7 @@ class Container(widget.Widget):
             ##
             ## if e.type == FOCUS:
             if e.type == FOCUS and not self.myfocus:
-                #self.first()
-                pass
+                self.first()
             elif e.type == EXIT:
                 if self.myhover: self.exit(self.myhover)
             elif e.type == BLUR:
@@ -255,8 +257,10 @@ class Container(widget.Widget):
 
     def _move_focus(self,dx_,dy_):
         myfocus = self.myfocus
-        if not self.myfocus: return
-        
+        if not self.myfocus:
+            self.first()
+            return
+
         widgets = self._get_widgets(pguglobals.app)
         #if myfocus not in widgets: return
         #widgets.remove(myfocus)
@@ -264,7 +268,13 @@ class Container(widget.Widget):
             widgets.remove(myfocus)
         rect = myfocus.get_abs_rect()
         fx,fy = rect.centerx,rect.centery
-        
+
+        if dx_<0: fx = rect.left
+        elif dx_>0: fx = rect.right
+        if dy_<0: fy = rect.top
+        elif dy_>0: fy = rect.bottom
+
+
         def sign(v):
             if v < 0: return -1
             if v > 0: return 1
@@ -274,6 +284,12 @@ class Container(widget.Widget):
         for w in widgets:
             wrect = w.get_abs_rect()
             wx,wy = wrect.centerx,wrect.centery
+
+            if dx_<0: wx = wrect.right
+            elif dx_>0: wx = wrect.left
+            if dy_<0: wy = wrect.bottom
+            elif dy_>0: wy = wrect.top
+
             dx,dy = wx-fx,wy-fy
             if dx_ > 0 and wrect.left < rect.right: continue
             if dx_ < 0 and wrect.right > rect.left: continue
@@ -359,16 +375,17 @@ class Container(widget.Widget):
     def exit(self,w):
         if self.myhover and self.myhover is w:
             self.myhover = None
-            w._event(pygame.event.Event(EXIT))    
-    
-    
-#     def first(self):
-#         for w in self.widgets:
-#             if w.focusable:
-#                 self.focus(w)
-#                 return
-#         if self.container: self.container.next(self)
-    
+            w._event(pygame.event.Event(EXIT))
+
+
+    def first(self):
+        for w in self.widgets:
+            if w.focusable:
+                self.focus(w)
+                return
+        if self.container:
+            self.container.next(self)
+
 #     def next(self,w):
 #         if w not in self.widgets: return #HACK: maybe.  this happens in windows for some reason...
 #         
