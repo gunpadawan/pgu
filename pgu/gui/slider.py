@@ -19,7 +19,8 @@ class _slider(widget.Widget):
         widget.Widget.__init__(self,**params)
         self.min,self.max,self.value,self.orient,self.size,self.step = min,max,value,orient,size,step
         self.style.check("bar")
-    
+        self.slide = False
+
     def paint(self,s):
         
         self.value = self.value
@@ -34,7 +35,12 @@ class _slider(widget.Widget):
         self.bar = r
 
         pguglobals.app.theme.render(s,self.style.bar,r)
-    
+
+    def focus(self):
+        widget.Widget.focus(self)
+        self.slide = False
+
+
     def event(self,e):
         used = None
         r = pygame.rect.Rect(0,0,self.style.width,self.style.height)
@@ -66,18 +72,23 @@ class _slider(widget.Widget):
                     x,y,adj = e.pos[0],e.pos[1],1
                     
         elif e.type is KEYDOWN:
-            if self.orient == _SLIDER_HORIZONTAL and e.key == K_LEFT:
-                self.value -= self.step
-                used = True
-            elif self.orient == _SLIDER_HORIZONTAL and e.key == K_RIGHT:
-                self.value += self.step
-                used = True
-            elif self.orient == _SLIDER_VERTICAL and e.key == K_UP:
-                self.value -= self.step
-                used = True
-            elif self.orient == _SLIDER_VERTICAL and e.key == K_DOWN:
-                self.value += self.step
-                used = True
+            if e.key == K_SPACE or e.key == K_RETURN:
+                "print slide"
+                self.slide = not self.slide
+
+            elif self.slide:
+                if self.orient == _SLIDER_HORIZONTAL and e.key == K_LEFT:
+                    self.value -= self.step
+                    used = True
+                elif self.orient == _SLIDER_HORIZONTAL and e.key == K_RIGHT:
+                    self.value += self.step
+                    used = True
+                elif self.orient == _SLIDER_VERTICAL and e.key == K_UP:
+                    self.value -= self.step
+                    used = True
+                elif self.orient == _SLIDER_VERTICAL and e.key == K_DOWN:
+                    self.value += self.step
+                    used = True
 
         if adj:
             if self.orient == _SLIDER_HORIZONTAL:
